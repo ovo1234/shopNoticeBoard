@@ -1,0 +1,25 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/shopNoticeDB
+    username: root
+    password: 1016@
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        enable_lazy_load_no_trans: true
+        show_sql: false
+        format_sql: true
+jwt:
+  secret: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoib3ZvIiwiaWQiOiJ0ZXN0LWlkIn0.4girUvYNu4Z4Fk7t2-ya44u3TqzBIrfJ-ydpSIi0BSA
+
+  accessTokenExpiration: 3600000
+
+  refreshTokenExpiration: 604800000
+
