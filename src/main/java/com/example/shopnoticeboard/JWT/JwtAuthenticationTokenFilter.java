@@ -21,25 +21,22 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         System.out.println(path);
 
-        if (path.contains("/users/login") || path.contains("/users/signup") || path.contains("/users/mail") || path.contains("/users/check") || path.contains("/users.check2")) {
+        if (path.contains("/users/login") || path.contains("/users/signup")) {
             filterChain.doFilter(request, response);
             return;
         }
 
         String token = jwtTokenProvider.resolveAccessToken(request);
-        System.out.println("jwtF token: " + token);
 
         if(token == null){
             String refreshToken = jwtTokenProvider.resolveRefreshToken(request);
             if (jwtTokenProvider.validateToken(refreshToken)) {
-//                token = jwtTokenProvider.reissueAccessToken(refreshToken);
-//                jwtTokenProvider.setHeaderAccessToken(response, token);
-//                this.setAuthentication(token);
-                System.out.println("null");
+                token = jwtTokenProvider.reissueAccessToken(refreshToken);
+                jwtTokenProvider.setHeaderAccessToken(response, token);
+                this.setAuthentication(token);
             }
         } else if(token != null){
             if(jwtTokenProvider.validateToken(token)){
-                System.out.println("jwtF validate token : " + token);
                 this.setAuthentication(token);
             }
         }
@@ -50,7 +47,6 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
     // SecurityContext에 Authentication 저장
     private void setAuthentication(String token) {
         Authentication authentication = jwtTokenProvider.getAuthentication(token);
-        System.out.println("권한 확인 : " + authentication.getAuthorities());
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 

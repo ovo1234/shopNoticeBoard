@@ -1,9 +1,6 @@
 package com.example.shopnoticeboard.Controller;
 
-import com.example.shopnoticeboard.Dto.user.UserLoginRequest;
-import com.example.shopnoticeboard.Dto.user.UserSignupRequest;
-import com.example.shopnoticeboard.Dto.user.UserUpdateRequest;
-import com.example.shopnoticeboard.Dto.user.UserViewResponse;
+import com.example.shopnoticeboard.Dto.user.*;
 import com.example.shopnoticeboard.Entity.User;
 import com.example.shopnoticeboard.JWT.JwtTokenProvider;
 import com.example.shopnoticeboard.Repository.UserRepository;
@@ -21,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.Collection;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,23 +26,8 @@ import java.util.Collection;
 public class UserController {
     private final UserService userService;
     private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
 
-    // test 권한
-    @GetMapping("/check")
-    public String test(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request, HttpServletResponse  response){
-        String token = jwtTokenProvider.resolveAccessToken(request);
-        String email = jwtTokenProvider.getUserEmail(token);
-
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if(authentication.equals("ROLE_USER")){
-            return authentication + "권한 확인";
-        }
-
-        return authentication.toString() ;
-    }
-
-    // 회원가입 - user
+    // 회원가입
     @PostMapping("/signup")
     public ResponseEntity<String> userSignUp(@RequestBody UserSignupRequest userSignupRequest, HttpServletResponse response) {
         userService.signup(userSignupRequest, response);
@@ -57,10 +40,10 @@ public class UserController {
         if(!userService.login(userLoginRequest, response)){
             return ResponseEntity.badRequest().body("로그인이 실패하였습니다. 다시 시도하세요.");
         }
-        User user = userRepository.findByEmail(userLoginRequest.getEmail());
+        User user = userRepository.findByEmail(userLoginRequest.getEmail()).orElseThrow();
         userService.login(userLoginRequest, response);
 
-        return ResponseEntity.ok(user.getNickname()+"님 환영합니다." + SecurityContextHolder.getContext().getAuthentication().getAuthorities().toString());
+        return ResponseEntity.ok(user.getNickname()+"님 환영합니다.");
     }
 
     // 마이페이지
@@ -75,5 +58,25 @@ public class UserController {
         userService.updateUser(userUpdateRequest);
         return ResponseEntity.ok("내 정보 업데이트 완료.");
     }
+
+    // 로그아웃
+    @GetMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) {
+        userService.logout(request);
+        return ResponseEntity.ok("로그아웃 되었습니다");
+    }
+
+    // 탈퇴
+    @DeleteMapping("/delete")
+    public String delete(@RequestBody UserDeleteRequest userDeleteRequest, HttpServletRequest request) {
+        return userService.deleteUser(userDeleteRequest, request);
+    }
+
+    // 관리자 전용
+    @GetMapping("/list")
+    public List<User> viewBoardList() {
+        return userService.viewUserList();
+    }
+
 
 }

@@ -10,5 +10,5 @@ public enum UserRole {
     SHOPOWNER("ROLE_SHOPOWNER"),
     ADMIN("ROLE_ADMIN");
 
-    private String value;
+    private final String value;
 }

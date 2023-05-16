@@ -1,6 +1,5 @@
 package com.example.shopnoticeboard.Service;
 
-import com.example.shopnoticeboard.Dto.user.UserDetailslmp;
 import com.example.shopnoticeboard.Repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,7 +15,7 @@ public class CustomUserDetailService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return new UserDetailslmp(userRepository.findByEmail(username)
-//                .orElseThrow(() -> new UsernameNotFoundException("회원이 존재하지 않습니다."))
+                .orElseThrow(() -> new UsernameNotFoundException("회원이 존재하지 않습니다."))
         ) {
         };
     }
