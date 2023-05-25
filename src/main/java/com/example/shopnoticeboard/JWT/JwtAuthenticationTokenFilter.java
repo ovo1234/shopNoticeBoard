@@ -21,7 +21,7 @@ public class JwtAuthenticationTokenFilter extends OncePerRequestFilter {
         String path = request.getRequestURI();
         System.out.println(path);
 
-        if (path.contains("/users/login") || path.contains("/users/signup")) {
+        if (path.contains("/users/login") || path.contains("/users/signup") || path.contains("/users/email") || path.contains("/users/emailVerify")) {
             filterChain.doFilter(request, response);
             return;
         }

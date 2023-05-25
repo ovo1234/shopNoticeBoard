@@ -1,13 +1,12 @@
 package com.example.shopnoticeboard.Entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import com.example.shopnoticeboard.Dto.shop.ShopThingUpdateRequest;
+import com.example.shopnoticeboard.Dto.shop.ShopUpdateRequest;
+import lombok.*;
 
 import javax.persistence.*;
 
-@Getter
+@Data
 @Entity
 @Builder
 @RequiredArgsConstructor
@@ -15,8 +14,11 @@ import javax.persistence.*;
 @Table(name = "shop")
 public class Shop {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+
+    @Column
+    private String shopOwner;
 
     @Column
     private String shopName;
@@ -24,6 +26,16 @@ public class Shop {
     @Column
     private String shopLocation;
 
-    @Column
+    @Column(name = "shopThing", columnDefinition = "json")
     private String shopThing;
+
+    public void updateShop(ShopUpdateRequest shopUpdateRequest) {
+        this.shopName = shopUpdateRequest.getShopName();
+        this.shopLocation = shopUpdateRequest.getShopLocation();
+    }
+
+    public void updateThing(ShopThingUpdateRequest shopThingUpdateRequest) {
+        this.shopThing = shopThingUpdateRequest.getShopThing();
+    }
+
 }

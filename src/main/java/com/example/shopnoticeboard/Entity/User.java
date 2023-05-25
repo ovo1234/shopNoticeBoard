@@ -3,6 +3,7 @@ package com.example.shopnoticeboard.Entity;
 import com.example.shopnoticeboard.Dto.user.UserUpdateRequest;
 import com.example.shopnoticeboard.enums.UserRole;
 import lombok.*;
+import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 
@@ -30,6 +31,10 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole userRole;
+
+    @Column(nullable = false)
+    @Type(type = "true_false")
+    private boolean emailConfirmed;
 
     public void update(UserUpdateRequest userUpdateRequest) {
         this.nickname = userUpdateRequest.getNickname();

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 public class UserSignupRequest {
     private String email, password, nickname;
     private UserRole userRole;
+    private boolean emailConfirmed;
 
     public User toEntity() {
         return User.builder()
@@ -17,6 +18,7 @@ public class UserSignupRequest {
                 .password(password)
                 .userRole(userRole)
                 .nickname(nickname)
+                .emailConfirmed(emailConfirmed)
                 .build();
     }
 }

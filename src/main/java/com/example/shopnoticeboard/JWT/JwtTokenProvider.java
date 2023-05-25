@@ -1,7 +1,10 @@
 package com.example.shopnoticeboard.JWT;
 
+import com.example.shopnoticeboard.Error.ErrorCode;
+import com.example.shopnoticeboard.Error.ErrorException;
 import com.example.shopnoticeboard.Repository.UserRepository;
 import com.example.shopnoticeboard.Service.CustomUserDetailService;
+import com.example.shopnoticeboard.Service.RefreshTokenService;
 import com.example.shopnoticeboard.enums.UserRole;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.SignatureException;
@@ -11,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,6 +33,7 @@ import java.util.*;
 public class JwtTokenProvider {
     private final UserRepository userRepository;
     private final CustomUserDetailService customUserDetailService;
+    private final RefreshTokenService refreshTokenService;
 
     // 키
     @Value("${jwt.secret}")
@@ -76,7 +81,6 @@ public class JwtTokenProvider {
     // JWT 토큰에서 인증 정보 조회
     public UsernamePasswordAuthenticationToken getAuthentication(String token) {
         UserDetails userDetails = customUserDetailService.loadUserByUsername(this.getUserEmail(token));
-        System.out.println("인증 정보 조회 : "+userDetails.getAuthorities());
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
@@ -89,15 +93,16 @@ public class JwtTokenProvider {
         return jwtParser.parseClaimsJws(token).getBody().getSubject();
     }
 
-//    public String reissueAccessToken(String refreshToken) {
-//        String email = redisService.getValues(refreshToken).get("email");
-//        if (Objects.isNull(email)) {
-//            System.out.println("401");
-//            //throw new ForbiddenException("401", ErrorCode.ACCESS_DENIED_EXCEPTION);
-//        }
-//
-//        return createAccessToken(email, userRepository.findByEmail(email).getUserRole());
-//    }
+    public String reissueAccessToken(String refreshToken) {
+        String email = this.getUserEmail(refreshToken);
+        System.out.println("refreshToken email : "+email);
+        if (email == null) {
+            System.out.println("401");
+            throw new ErrorException("401", ErrorCode.ACCESS_DENIED_EXCEPTION);
+        }
+
+        return createAccessToken(email, userRepository.findByEmail(email).get().getUserRole());
+    }
 
     // Request의 Header에서 AccessToken 값을 가져옵니다. "authorization" : "token"
     public String resolveAccessToken(HttpServletRequest request) {
@@ -113,22 +118,20 @@ public class JwtTokenProvider {
         return null;
     }
 
-
-
-//    // Expire Token
-//    public void expireToken(String token) {
-//        Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
-//        Claims claims = Jwts.parserBuilder()
-//                .setSigningKey(key)
-//                .build()
-//                .parseClaimsJws(token)
-//                .getBody();
-//        Date expiration = claims.getExpiration();
-//        Date now = new Date();
-//        if (now.after(expiration)) {
-//            redisService.addTokenToBlacklist(token, expiration.getTime() - now.getTime());
-//        }
-//    }
+    // Expire Token
+    public void expireToken(String token) {
+        Key key = Keys.hmacShaKeyFor(secretKey.getBytes());
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+        Date expiration = claims.getExpiration();
+        Date now = new Date();
+        if (now.after(expiration)) {
+            //redisService.addTokenToBlacklist(token, expiration.getTime() - now.getTime());
+        }
+    }
 
     // 토큰의 유효성 + 만료일자 확인
     public boolean validateToken(String jwtToken) {
@@ -165,7 +168,6 @@ public class JwtTokenProvider {
 
     // Email로 권한 정보 가져오기
     public UserRole getRoles(String email) {
-        return userRepository.findByEmail(email).getUserRole();
+        return userRepository.findByEmail(email).get().getUserRole();
     }
-
 }
